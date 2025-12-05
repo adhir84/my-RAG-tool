@@ -1,0 +1,10 @@
+fastapi==0.70.0
+uvicorn==0.15.0
+cohere
+pinecone-client==2.0.0
+pinecone
+openai
+snowflake-connector-python
+cryptography
+opentelemetry-api
+snowflake-telemetry-python
