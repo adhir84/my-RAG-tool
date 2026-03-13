@@ -1,3 +1,4 @@
+# app.py
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import openai, os, logging, traceback
@@ -50,7 +51,31 @@ def _connect_snowflake():
     )
 
 def _sql_for_table(table_name: str, vector_str: str, top_k: int) -> str:
-    """Single SQL template (tables share the same columns)."""
+    """Return SQL depending on table structure."""
+
+    if table_name == "AFINA_UPDATED":
+        return f"""
+        WITH QUERY AS (
+            SELECT {vector_str}::VECTOR(FLOAT, 1536) AS QVEC
+        )
+        SELECT
+            FILENAME,
+            CHUNK_INDEX,
+            CHUNK_TEXT,
+            DOI,
+            ARTICLE_SUMMARY,
+            PDF_SAS_URL,
+            TITLE,
+            DATE,
+            CITATION,
+            CITATION_COUNT,
+            VECTOR_COSINE_SIMILARITY(EMBEDDING_VECTOR, QVEC) AS SIMILARITY
+        FROM {table_name}, QUERY
+        ORDER BY SIMILARITY DESC
+        LIMIT {top_k};
+        """
+
+    # Default structure (all other tables)
     return f"""
     WITH QUERY AS (
         SELECT {vector_str}::VECTOR(FLOAT, 1536) AS QVEC
@@ -140,5 +165,17 @@ async def pod_query(query_data: QueryRequest):
         return {"context": context}
     except Exception as e:
         logging.error(f"/pod/query failed: {e}")
+        logging.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Process failed: {str(e)}")
+
+@app.post("/client-materials/query")
+async def client_materials_query(query_data: QueryRequest):
+    logging.debug(f"/client-materials/query received: {query_data}")
+    try:
+        embedding = _embed(query_data.query_text)
+        context = query_snowflake_for_context(embedding,"CLIENT_MATERIALS", query_data.top_k)
+        return {"context": context}
+    except Exception as e:
+        logging.error(f"/client-materials/query failed: {e}")
         logging.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Process failed: {str(e)}")
