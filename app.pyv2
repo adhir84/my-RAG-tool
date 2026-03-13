@@ -179,3 +179,4 @@ async def client_materials_query(query_data: QueryRequest):
         logging.error(f"/client-materials/query failed: {e}")
         logging.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Process failed: {str(e)}")
+
