@@ -38,7 +38,7 @@ pkb = p_key.private_bytes(
 )
 
 # Allow both tables (UPPERCASE)
-ALLOWED_TABLES = {"OHCM_PODCASTS", "AFINA_AD"}
+ALLOWED_TABLES = {"OHCM_PODCASTS", "AFINA_AD", "CLIENT_MATERIALS"}
 
 def _connect_snowflake():
     return snowflake.connector.connect(
