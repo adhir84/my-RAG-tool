@@ -53,7 +53,7 @@ def _connect_snowflake():
 def _sql_for_table(table_name: str, vector_str: str, top_k: int) -> str:
     """Return SQL depending on table structure."""
 
-    if table_name == "AFINA_UPDATED":
+    if table_name == "AFINA_AD":
         return f"""
         WITH QUERY AS (
             SELECT {vector_str}::VECTOR(FLOAT, 1536) AS QVEC
